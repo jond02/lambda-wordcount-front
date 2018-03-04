@@ -9,6 +9,8 @@ import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -17,6 +19,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class WordCountHandler {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(WordCountHandler.class);
 
     private AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
     private static final String DYNAMODB_TABLE_NAME = "word_totals";
@@ -35,12 +39,14 @@ public class WordCountHandler {
         response.setWords(new ArrayList<>());
 
         if (address == null) {
-            response.setStatus("Error: Please enter a valid URL.");
+            response.setStatus("Error. URL can't be null");
+            LOGGER.error("NULL_URL");
             return;
         }
 
         if (!doesURLExist(address)) {
-            response.setStatus("Error: Invalid URL");
+            response.setStatus("Error. Invalid URL: " + address);
+            LOGGER.error("INVALID_URL {}", address);
             return;
         }
 
@@ -53,6 +59,7 @@ public class WordCountHandler {
             words.sort(Word.byTotal);
             response.setStatus("Success");
             response.setWords(words);
+            LOGGER.info("SUCCESS_DATABASE: {}", address);
 
         } else {
 
@@ -62,9 +69,10 @@ public class WordCountHandler {
                     .withMessageBody(address);
 
             sqs.sendMessage(send_msg_request);
-
             response.setStatus("Successfully added '" + address + "' to queue, please try again later for results.");
             response.setWords(words);
+            LOGGER.info("SUCCESS_QUEUED: {}", address);
+
         }
     }
 

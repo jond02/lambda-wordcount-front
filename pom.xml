@@ -27,6 +27,12 @@
             <version>1.11.271</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.symphonia</groupId>
+            <artifactId>lambda-logging</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
